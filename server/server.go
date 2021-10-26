@@ -1,12 +1,15 @@
-package tadl
+package dyml
 
 import (
+	"dyml-support/protocol"
 	"fmt"
+	"log"
 	"strings"
-	"tadl/protocol"
+
+	"github.com/golangee/dyml/token"
 )
 
-// Tadl language server.
+// DYML language server.
 type Server struct {
 	// Map from Uri's to files.
 	files map[protocol.DocumentURI]File
@@ -27,7 +30,7 @@ func (s *Server) Initialize(params *protocol.InitializeParams) protocol.Initiali
 			TextDocumentSync: protocol.Full,
 			SemanticTokensProvider: protocol.SemanticTokensOptions{
 				Legend: protocol.SemanticTokensLegend{
-					TokenTypes: []string{"keyword", "variable", "assignment", "number"},
+					TokenTypes: []string{"comment", "type", "string", "comment", "keyword"},
 				},
 				Full: true,
 			},
@@ -81,17 +84,20 @@ func (s *Server) FullSemanticTokens(params *protocol.SemanticTokensParams) proto
 	// Mark "let" as a keyword for testing purposes.
 
 	file := s.files[params.TextDocument.URI]
+
 	var data []uint32
 
-	// Find absolute positions of "let"
-	for lineIdx, line := range strings.Split(file.Content, "\n") {
-		for i := 0; i < len(line); i++ {
-			if i < len(line)-2 {
-				if line[i:i+3] == "let" {
-					data = append(data, uint32(lineIdx), uint32(i), 3, 0, 0)
-				}
-			}
+	lexer := token.NewLexer(string(file.Uri), strings.NewReader(file.Content))
+
+	for {
+		tok, err := lexer.Token()
+		if err != nil {
+			// TODO What should we do here?
+			break
 		}
+		part := SerializeToken(tok)
+		data = append(data, part...)
+		log.Printf("New token: %#v got serialized into %#v\n", tok, part)
 	}
 
 	// Make token positions relative.
@@ -149,7 +155,7 @@ func (s *Server) sendPreview() {
 		</style>
 	</head>
 	<body>
-		<h1>Tadl Preview</h1>
+		<h1>DYML Preview</h1>
 		<hr>
 		Du hast %d Dateien geöffnet.<br>
 	</body>

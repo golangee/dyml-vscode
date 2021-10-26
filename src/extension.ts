@@ -13,9 +13,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Select correct language server binary for this platform.
 	let platform = `${os.platform()}-${os.arch()}`;
-	let binPath = context.asAbsolutePath(`out/bin/tadl-${platform}`);
+	let binPath = context.asAbsolutePath(`out/bin/dyml-${platform}`);
 	if (!fs.existsSync(binPath)) {
-		vscode.window.showErrorMessage(`tadl-support has no binary for platform "${platform}" and will not work. Contact the developer to fix this.`);
+		vscode.window.showErrorMessage(`dyml-support has no binary for platform "${platform}" and will not work. Contact the developer to fix this.`);
 		return;
 	}
 
@@ -24,11 +24,11 @@ export function activate(context: vscode.ExtensionContext) {
 		transport: TransportKind.stdio,
 	};
 	let clientOptions: LanguageClientOptions = {
-		documentSelector: [{scheme: "file", language: "tadl"}],
+		documentSelector: [{scheme: "file", language: "dyml"}],
 	};
 	client = new LanguageClient(
-		"tadl-language-server",
-		"Tadl Language Server",
+		"dyml-language-server",
+		"DYML Language Server",
 		serverOptions,
 		clientOptions
 	);
@@ -49,12 +49,12 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	// Command for opening the preview panel.
-	context.subscriptions.push(vscode.commands.registerCommand("tadl.previewWorkspace", () => {
+	context.subscriptions.push(vscode.commands.registerCommand("dyml.previewWorkspace", () => {
 		if (previewPanel === null) {
 			// Create a new panel if it was not open
 			previewPanel = vscode.window.createWebviewPanel(
-				"tadl.previewPanel",
-				"Tadl Preview",
+				"dyml.previewPanel",
+				"DYML Preview",
 				vscode.ViewColumn.Beside,
 				{}
 			);

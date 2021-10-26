@@ -2,16 +2,16 @@ package main
 
 import (
 	"bufio"
+	"dyml-support"
+	"dyml-support/protocol"
 	"encoding/json"
 	"log"
 	"os"
-	"tadl"
-	"tadl/protocol"
 )
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
-	server := tadl.NewServer()
+	server := dyml.NewServer()
 
 	// Continuously read and respond to requests
 	for {
@@ -106,7 +106,7 @@ func main() {
 
 // Send response or log error message.
 func sendResponse(response interface{}, requestId float64) {
-	if err := tadl.SendResponse(response, requestId); err != nil {
+	if err := dyml.SendResponse(response, requestId); err != nil {
 		log.Println(err)
 	}
 }

@@ -1,6 +1,6 @@
 {
-  "name": "tadl-support",
-  "displayName": "tadl-support",
+  "name": "dyml-support",
+  "displayName": "dyml-support",
   "publisher": "worldiety",
   "description": "WIP",
   "version": "0.0.1",
@@ -11,35 +11,35 @@
     "Other"
   ],
   "activationEvents": [
-    "onLanguage:tadl",
-    "onCommand:tadl.previewWorkspace"
+    "onLanguage:dyml",
+    "onCommand:dyml.previewWorkspace"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "languages": [
       {
-        "id": "tadl",
+        "id": "dyml",
         "aliases": [
-          "Tadl"
+          "DYML"
         ],
         "extensions": [
-          ".tadl"
+          ".dyml"
         ],
         "configuration": "./language-configuration.json"
       }
     ],
     "commands": [
       {
-        "command": "tadl.previewWorkspace",
+        "command": "dyml.previewWorkspace",
         "title": "Preview Workspace",
-        "category": "Tadl"
+        "category": "DYML"
       }
     ],
     "menus": {
       "editor/title": [
         {
-          "when": "resourceLangId == tadl",
-          "command": "tadl.previewWorkspace",
+          "when": "resourceLangId == dyml",
+          "command": "dyml.previewWorkspace",
           "group": "navigation"
         }
       ]
