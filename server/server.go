@@ -2,11 +2,11 @@ package dyml
 
 import (
 	"dyml-support/protocol"
-	"fmt"
 	"log"
 	"path/filepath"
 	"strings"
 
+	"github.com/golangee/dyml/encoder"
 	"github.com/golangee/dyml/parser"
 	"github.com/golangee/dyml/token"
 )
@@ -42,7 +42,6 @@ func (s *Server) Initialize(params *protocol.InitializeParams) protocol.Initiali
 
 // Initialized tells us, that the client is ready.
 func (s *Server) Initialized() {
-	s.sendPreview()
 }
 
 // Handle a hover event.
@@ -53,7 +52,6 @@ func (t *Server) Hover(params *protocol.HoverParams) protocol.Hover {
 // A document was saved.
 func (s *Server) DidSaveTextDocument(params *protocol.DidSaveTextDocumentParams) {
 	s.sendDiagnostics()
-	s.sendPreview()
 }
 
 // A document was opened.
@@ -63,13 +61,11 @@ func (s *Server) DidOpenTextDocument(params *protocol.DidOpenTextDocumentParams)
 		Content: params.TextDocument.Text,
 	}
 	s.sendDiagnostics()
-	s.sendPreview()
 }
 
 // A document was close.
 func (s *Server) DidCloseTextDocument(params *protocol.DidCloseTextDocumentParams) {
 	delete(s.files, params.TextDocument.URI)
-	s.sendPreview()
 }
 
 // A document was changed.
@@ -118,6 +114,19 @@ func (s *Server) FullSemanticTokens(params *protocol.SemanticTokensParams) proto
 	}
 }
 
+func (s *Server) EncodeXML(filename protocol.DocumentURI) string {
+	var out strings.Builder
+	in := strings.NewReader(s.files[filename].Content)
+
+	enc := encoder.NewXMLEncoder(filepath.Base(string(filename)), in, &out)
+	err := enc.Encode()
+	if err != nil {
+		return ""
+	}
+
+	return out.String()
+}
+
 // Send some kind of diagnostics to test it out.
 func (s *Server) sendDiagnostics() {
 
@@ -164,21 +173,4 @@ func (s *Server) sendDiagnostics() {
 			Diagnostics: diagnostics,
 		})
 	}
-}
-
-func (s *Server) sendPreview() {
-	text := fmt.Sprintf(`
-<html>
-	<head>
-		<style>
-		</style>
-	</head>
-	<body>
-		<h1>DYML Preview</h1>
-		<hr>
-		Du hast %d Dateien geöffnet.<br>
-	</body>
-</html>`, len(s.files))
-
-	_ = SendNotification("custom/preview", text)
 }

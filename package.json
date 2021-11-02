@@ -12,7 +12,7 @@
   ],
   "activationEvents": [
     "onLanguage:dyml",
-    "onCommand:dyml.previewWorkspace"
+    "onCommand:dyml.encodeXML"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -30,20 +30,11 @@
     ],
     "commands": [
       {
-        "command": "dyml.previewWorkspace",
-        "title": "Preview Workspace",
+        "command": "dyml.encodeXML",
+        "title": "Encode as XML",
         "category": "DYML"
       }
-    ],
-    "menus": {
-      "editor/title": [
-        {
-          "when": "resourceLangId == dyml",
-          "command": "dyml.previewWorkspace",
-          "group": "navigation"
-        }
-      ]
-    }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

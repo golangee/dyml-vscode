@@ -47,7 +47,7 @@ func main() {
 		switch methodName {
 		case "initialize":
 			var params protocol.InitializeParams
-			if json.Unmarshal(request["params"], &params) != nil {
+			if err := json.Unmarshal(request["params"], &params); err != nil {
 				log.Println(err)
 				continue
 			}
@@ -58,46 +58,54 @@ func main() {
 			// Cancelling a request only makes sense for a multithreaded server.
 		case "textDocument/hover":
 			var params protocol.HoverParams
-			if json.Unmarshal(request["params"], &params) != nil {
+			if err := json.Unmarshal(request["params"], &params); err != nil {
 				log.Println(err)
 				continue
 			}
 			sendResponse(server.Hover(&params), requestId)
 		case "textDocument/didSave":
 			var params protocol.DidSaveTextDocumentParams
-			if json.Unmarshal(request["params"], &params) != nil {
+			if err := json.Unmarshal(request["params"], &params); err != nil {
 				log.Println(err)
 				continue
 			}
 			server.DidSaveTextDocument(&params)
 		case "textDocument/didOpen":
 			var params protocol.DidOpenTextDocumentParams
-			if json.Unmarshal(request["params"], &params) != nil {
+			if err := json.Unmarshal(request["params"], &params); err != nil {
 				log.Println(err)
 				continue
 			}
 			server.DidOpenTextDocument(&params)
 		case "textDocument/didClose":
 			var params protocol.DidCloseTextDocumentParams
-			if json.Unmarshal(request["params"], &params) != nil {
+			if err := json.Unmarshal(request["params"], &params); err != nil {
 				log.Println(err)
 				continue
 			}
 			server.DidCloseTextDocument(&params)
 		case "textDocument/didChange":
 			var params protocol.DidChangeTextDocumentParams
-			if json.Unmarshal(request["params"], &params) != nil {
+			if err := json.Unmarshal(request["params"], &params); err != nil {
 				log.Println(err)
 				continue
 			}
 			server.DidChangeTextDocument(&params)
 		case "textDocument/semanticTokens/full":
 			var params protocol.SemanticTokensParams
-			if json.Unmarshal(request["params"], &params) != nil {
+			if err := json.Unmarshal(request["params"], &params); err != nil {
 				log.Println(err)
 				continue
 			}
 			sendResponse(server.FullSemanticTokens(&params), requestId)
+		case "custom/encodeXML":
+			log.Println(string(request["params"]))
+			var params []protocol.DocumentURI
+			if err := json.Unmarshal(request["params"], &params); err != nil {
+				log.Println(err)
+				continue
+			}
+			sendResponse(server.EncodeXML(params[0]), requestId)
 		default:
 			log.Printf("Unknown method '%s'\n", methodName)
 		}

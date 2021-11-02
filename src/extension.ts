@@ -6,8 +6,6 @@ import * as fs from "fs";
 import { LanguageClientOptions, LanguageClient, ServerOptions, TransportKind } from "vscode-languageclient/node";
 
 let client: LanguageClient;
-let previewHtml: string = "No preview available";
-let previewPanel: vscode.WebviewPanel | null = null;
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -34,46 +32,24 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 	client.start();
 
-	// Setup client listeners, once it is ready.
-	client.onReady().then(() => {
-
-		// Store HTML preview we got from the server.
-		client.onNotification("custom/preview", (html) => {
-			previewHtml = html;
-			// If we have a panel, set previous HTML
-			if (previewPanel !== null) {
-				previewPanel.webview.html = previewHtml;
-			}
-		});
-		
-	});
-
-	// Command for opening the preview panel.
-	context.subscriptions.push(vscode.commands.registerCommand("dyml.previewWorkspace", () => {
-		if (previewPanel === null) {
-			// Create a new panel if it was not open
-			previewPanel = vscode.window.createWebviewPanel(
-				"dyml.previewPanel",
-				"DYML Preview",
-				vscode.ViewColumn.Beside,
-				{}
-			);
-			previewPanel.onDidDispose(() => {
-				previewPanel = null;
+	// Request an XML preview from the language server and show that result in a new editor.
+	context.subscriptions.push(vscode.commands.registerCommand("dyml.encodeXML", () => {
+		let doc = "file://" + vscode.window.activeTextEditor?.document.uri.fsPath;
+		if (doc) {
+			client.sendRequest("custom/encodeXML", doc).then((resp) => {
+				vscode.workspace.openTextDocument({
+					content: String(resp),
+					language: "xml"
+				}).then((document) => {
+					vscode.window.showTextDocument(document);
+				});
 			});
-			previewPanel.webview.html = previewHtml;
-		} else {
-			// Bring old panel to front
-			previewPanel.reveal();
 		}
 	}));
 }
 
 // Shut down language server and close preview panels when extension is deactivated
 export function deactivate(): Thenable<void> | undefined {
-	if (previewPanel !== null) {
-		previewPanel.dispose();
-	}
 	if (!client) {
 		return undefined;
 	} else {
