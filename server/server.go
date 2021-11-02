@@ -4,8 +4,10 @@ import (
 	"dyml-support/protocol"
 	"fmt"
 	"log"
+	"path/filepath"
 	"strings"
 
+	"github.com/golangee/dyml/parser"
 	"github.com/golangee/dyml/token"
 )
 
@@ -30,7 +32,7 @@ func (s *Server) Initialize(params *protocol.InitializeParams) protocol.Initiali
 			TextDocumentSync: protocol.Full,
 			SemanticTokensProvider: protocol.SemanticTokensOptions{
 				Legend: protocol.SemanticTokensLegend{
-					TokenTypes: []string{"comment", "type", "string", "comment", "keyword"},
+					TokenTypes: TokenTypes,
 				},
 				Full: true,
 			},
@@ -50,7 +52,7 @@ func (t *Server) Hover(params *protocol.HoverParams) protocol.Hover {
 
 // A document was saved.
 func (s *Server) DidSaveTextDocument(params *protocol.DidSaveTextDocumentParams) {
-	s.sendFunnyDiagnostics()
+	s.sendDiagnostics()
 	s.sendPreview()
 }
 
@@ -60,7 +62,7 @@ func (s *Server) DidOpenTextDocument(params *protocol.DidOpenTextDocumentParams)
 		Uri:     params.TextDocument.URI,
 		Content: params.TextDocument.Text,
 	}
-	s.sendFunnyDiagnostics()
+	s.sendDiagnostics()
 	s.sendPreview()
 }
 
@@ -77,7 +79,7 @@ func (s *Server) DidChangeTextDocument(params *protocol.DidChangeTextDocumentPar
 		Uri:     params.TextDocument.URI,
 		Content: params.ContentChanges[0].Text,
 	}
-	s.sendFunnyDiagnostics()
+	s.sendDiagnostics()
 }
 
 func (s *Server) FullSemanticTokens(params *protocol.SemanticTokensParams) protocol.SemanticTokens {
@@ -117,25 +119,42 @@ func (s *Server) FullSemanticTokens(params *protocol.SemanticTokensParams) proto
 }
 
 // Send some kind of diagnostics to test it out.
-func (s *Server) sendFunnyDiagnostics() {
+func (s *Server) sendDiagnostics() {
 
 	for _, file := range s.files {
 
 		fileContent := file.Content
 		fileContent = strings.ToLower(fileContent)
+		fileName := filepath.Base(string(file.Uri))
 
+		// Parse file for any errors. Ideally we would be able to catch multiple errors and then recover.
+		// Currently only the first error will be reported.
 		diagnostics := []protocol.Diagnostic{}
-		for lineIdx, line := range strings.Split(fileContent, "\n") {
-			i := strings.Index(line, "servus")
-			if i >= 0 {
+		parser := parser.NewParser(fileName, strings.NewReader(fileContent))
+		_, err := parser.Parse()
+		if err != nil {
+			switch e := err.(type) {
+			case *token.PosError:
+				for _, detail := range e.Details {
+					diagnostics = append(diagnostics, protocol.Diagnostic{
+						Range: protocol.Range{
+							Start: protocol.Position{
+								Line:      uint32(detail.Node.Begin().Line),
+								Character: uint32(detail.Node.Begin().Col),
+							},
+							End: protocol.Position{
+								Line:      uint32(detail.Node.End().Line),
+								Character: uint32(detail.Node.End().Col),
+							},
+						},
+						Severity: protocol.SeverityError,
+						Message:  e.Error(),
+					})
+				}
+			default:
 				diagnostics = append(diagnostics, protocol.Diagnostic{
-					Range: protocol.Range{
-						Start: protocol.Position{Line: uint32(lineIdx), Character: uint32(i)},
-						End:   protocol.Position{Line: uint32(lineIdx), Character: uint32(i + 6)},
-					},
 					Severity: protocol.SeverityError,
-					Message:  "Unzulässige Anrede",
-					Source:   "bayern-lint",
+					Message:  e.Error(),
 				})
 			}
 		}
