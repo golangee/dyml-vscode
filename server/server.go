@@ -2,7 +2,6 @@ package dyml
 
 import (
 	"dyml-support/protocol"
-	"log"
 	"path/filepath"
 	"strings"
 
@@ -87,15 +86,30 @@ func (s *Server) FullSemanticTokens(params *protocol.SemanticTokensParams) proto
 
 	lexer := token.NewLexer(string(file.Uri), strings.NewReader(file.Content))
 
+	// When a comment occurs the lexer emits a comment token and a chardata token.
+	// We want to change the type of the chardata to be shown as a comment.
+	nextCharIsComment := false
+
 	for {
 		tok, err := lexer.Token()
 		if err != nil {
 			// TODO What should we do here?
 			break
 		}
+
 		part := SerializeToken(tok)
+
+		if nextCharIsComment && tok.Type() == token.TokenCharData {
+			part[3] = TokenComment
+		}
+		nextCharIsComment = false
+
+		switch tok.Type() {
+		case token.TokenG1Comment, token.TokenG2Comment:
+			nextCharIsComment = true
+		}
+
 		data = append(data, part...)
-		log.Printf("New token: %#v got serialized into %#v\n", tok, part)
 	}
 
 	// Make token positions relative.
@@ -127,9 +141,8 @@ func (s *Server) EncodeXML(filename protocol.DocumentURI) string {
 	return out.String()
 }
 
-// Send some kind of diagnostics to test it out.
+// sendDiagnostics sends any parser errors.
 func (s *Server) sendDiagnostics() {
-
 	for _, file := range s.files {
 
 		fileContent := file.Content
@@ -148,12 +161,13 @@ func (s *Server) sendDiagnostics() {
 					diagnostics = append(diagnostics, protocol.Diagnostic{
 						Range: protocol.Range{
 							Start: protocol.Position{
-								Line:      uint32(detail.Node.Begin().Line),
-								Character: uint32(detail.Node.Begin().Col),
+								// Subtract 1 since dyml has 1 based lines and columns, but LSP wants 0 based
+								Line:      uint32(detail.Node.Begin().Line) - 1,
+								Character: uint32(detail.Node.Begin().Col) - 1,
 							},
 							End: protocol.Position{
-								Line:      uint32(detail.Node.End().Line),
-								Character: uint32(detail.Node.End().Col),
+								Line:      uint32(detail.Node.End().Line) - 1,
+								Character: uint32(detail.Node.End().Col) - 1,
 							},
 						},
 						Severity: protocol.SeverityError,

@@ -37,7 +37,7 @@ func SerializeToken(tok token.Token) []uint32 {
 	// token Package handles tokens with 1-based positions, we want 0-based.
 	data[0] = uint32(tok.Pos().BeginPos.Line - 1)
 	data[1] = uint32(tok.Pos().BeginPos.Col - 1)
-	data[2] = uint32(tok.Pos().End().Offset-tok.Pos().Begin().Offset) + 2
+	data[2] = uint32(tok.Pos().End().Offset - tok.Pos().Begin().Offset)
 
 	switch tok.Type() {
 	case token.TokenIdentifier:
