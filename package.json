@@ -1,9 +1,13 @@
 {
-  "name": "dyml-support",
-  "displayName": "dyml-support",
+  "name": "dyml-vscode",
+  "displayName": "DYML",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/golangee/dyml-vscode.git"
+  },
   "publisher": "worldiety",
-  "description": "WIP",
-  "version": "0.0.1",
+  "description": "Add syntax highlighting for DYML, the double yielding markup language.",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.55.0"
   },

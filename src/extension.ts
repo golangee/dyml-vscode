@@ -11,6 +11,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Select correct language server binary for this platform.
 	let platform = `${os.platform()}-${os.arch()}`;
+	if (platform === "darwin-arm64") {
+		// Workaround while we cannot build native binary on github actions.
+		platform = "darwin-x64";
+	}
 	let binPath = context.asAbsolutePath(`out/bin/dyml-${platform}`);
 	if (!fs.existsSync(binPath)) {
 		vscode.window.showErrorMessage(`dyml-support has no binary for platform "${platform}" and will not work. Contact the developer to fix this.`);

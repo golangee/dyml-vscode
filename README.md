@@ -9,4 +9,4 @@ You need [VS Code](https://code.visualstudio.com/) to try this extension. Open t
 
 It might be useful to see the extensions output, which you can show by opening `View > Output` and selecting it in the dropdown on the right. `DYML Language Server` and `Log (Extension Host)` might be of interest here.
 
-To package the application into a `.vsix` file run `vsce package`. You might need to `npm install -g vsce` first. This package can then be installed in vscode by opening the overflow menu in the extension tab, and selecting `Install from VSIX`.
+To package the application into a `.vsix` file run `make`. You might need to `npm install -g vsce` first. This package can then be installed in vscode by opening the overflow menu in the extension tab, and selecting `Install from VSIX`.
