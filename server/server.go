@@ -97,11 +97,7 @@ func (s *Server) FullSemanticTokens(params *protocol.SemanticTokensParams) proto
 			break
 		}
 
-		part := SerializeToken(tok)
-
-		if nextCharIsComment && tok.Type() == token.TokenCharData {
-			part[3] = TokenComment
-		}
+		part := SerializeToken(tok, nextCharIsComment)
 		nextCharIsComment = false
 
 		switch tok.Type() {

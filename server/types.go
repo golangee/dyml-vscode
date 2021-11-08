@@ -31,25 +31,50 @@ type File struct {
 // where line, col are relative and type being an index into the array we
 // sent to the client in initialize.
 // Here the token positions are absolute, they will need to be made relative later.
-func SerializeToken(tok token.Token) []uint32 {
-	data := make([]uint32, 5)
+// charIsComment can be set to true to set the type of CharData to comment.
+func SerializeToken(tok token.Token, charIsComment bool) []uint32 {
+	// The resulting serialized form we will build in this method.
+	var data []uint32
 
-	// token Package handles tokens with 1-based positions, we want 0-based.
-	data[0] = uint32(tok.Pos().BeginPos.Line - 1)
-	data[1] = uint32(tok.Pos().BeginPos.Col - 1)
-	data[2] = uint32(tok.Pos().End().Offset - tok.Pos().Begin().Offset)
-
-	switch tok.Type() {
-	case token.TokenIdentifier:
-		data[3] = TokenKeyword
-	case token.TokenCharData:
-		data[3] = TokenString
-	case token.TokenG1Comment, token.TokenG2Comment:
-		data[3] = TokenComment
-	case token.TokenDefineElement:
-		data[3] = TokenType
+	// Some tokens might span multiple lines and need to be serialized per line.
+	// This list contains tokens per line.
+	var toks []token.Token
+	switch t := tok.(type) {
+	case *token.CharData:
+		for _, cd := range t.SplitLines() {
+			toks = append(toks, cd)
+		}
 	default:
-		data[3] = TokenType
+		toks = append(toks, tok)
+	}
+
+	for _, tokPart := range toks {
+		// Collect data for this token here and append it to data later.
+		tokPartData := make([]uint32, 5)
+
+		// token package handles tokens with 1-based positions, we want 0-based.
+		tokPartData[0] = uint32(tokPart.Pos().BeginPos.Line - 1)
+		tokPartData[1] = uint32(tokPart.Pos().BeginPos.Col - 1)
+		tokPartData[2] = uint32(tokPart.Pos().End().Offset - tokPart.Pos().Begin().Offset)
+
+		switch tokPart.Type() {
+		case token.TokenIdentifier:
+			tokPartData[3] = TokenKeyword
+		case token.TokenCharData:
+			tokPartData[3] = TokenString
+		case token.TokenG1Comment, token.TokenG2Comment:
+			tokPartData[3] = TokenComment
+		case token.TokenDefineElement:
+			tokPartData[3] = TokenType
+		default:
+			tokPartData[3] = TokenType
+		}
+
+		if tokPart.Type() == token.TokenCharData && charIsComment {
+			tokPartData[3] = TokenComment
+		}
+
+		data = append(data, tokPartData...)
 	}
 
 	return data

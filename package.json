@@ -7,7 +7,7 @@
   },
   "publisher": "worldiety",
   "description": "Add syntax highlighting for DYML, the double yielding markup language.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "engines": {
     "vscode": "^1.55.0"
   },
