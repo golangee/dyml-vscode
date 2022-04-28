@@ -1,11 +1,11 @@
-# dyml-support
+# dyml-vscode
 
-A VS code extension to add support for [DYML](https://github.com/golangee/dyml)). It will feature syntax highlighting and syntax checking.
+A VS code extension to add support for [DYML](https://github.com/golangee/dyml). It will feature syntax highlighting and syntax checking.
 
 Currently WIP.
 
 ## Development
-You need [VS Code](https://code.visualstudio.com/) to try this extension. Open this project in it and select `Run > Start Debugging` or press `F5`. You need to have a go compiler and npm installed.
+You need [VS Code](https://code.visualstudio.com/) to try this extension. Run `npm install`, then open this project in vscode and select `Run > Start Debugging` or press `F5`. You need to have a go compiler and npm installed.
 
 It might be useful to see the extensions output, which you can show by opening `View > Output` and selecting it in the dropdown on the right. `DYML Language Server` and `Log (Extension Host)` might be of interest here.
 
